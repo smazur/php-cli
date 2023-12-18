@@ -21,18 +21,21 @@ abstract class Base
     /** @var  Colors */
     public $colors;
 
-    /** @var array PSR-3 compatible loglevels and their prefix, color, output channel */
-    protected $loglevel = array(
-        'debug' => array('', Colors::C_RESET, STDOUT),
-        'info' => array('ℹ ', Colors::C_CYAN, STDOUT),
-        'notice' => array('☛ ', Colors::C_CYAN, STDOUT),
-        'success' => array('✓ ', Colors::C_GREEN, STDOUT),
-        'warning' => array('⚠ ', Colors::C_BROWN, STDERR),
-        'error' => array('✗ ', Colors::C_RED, STDERR),
-        'critical' => array('☠ ', Colors::C_LIGHTRED, STDERR),
-        'alert' => array('✖ ', Colors::C_LIGHTRED, STDERR),
-        'emergency' => array('✘ ', Colors::C_LIGHTRED, STDERR),
-    );
+	/** @var array PSR-3 compatible loglevels and their prefix, color, output channel */
+	static protected $loglevels = array(
+		'debug' => array('', Colors::C_RESET, STDOUT),
+		'info' => array('ℹ ', Colors::C_CYAN, STDOUT),
+		'notice' => array('☛ ', Colors::C_CYAN, STDOUT),
+		'success' => array('✓ ', Colors::C_GREEN, STDOUT),
+		'warning' => array('⚠ ', Colors::C_BROWN, STDERR),
+		'error' => array('✗ ', Colors::C_RED, STDERR),
+		'critical' => array('☠ ', Colors::C_LIGHTRED, STDERR),
+		'alert' => array('✖ ', Colors::C_LIGHTRED, STDERR),
+		'emergency' => array('✘ ', Colors::C_LIGHTRED, STDERR),
+	);
+
+    /** @var array current log level setup */
+    protected $loglevel;
 
     protected $logdefault = 'info';
 
@@ -143,15 +146,31 @@ abstract class Base
      */
     protected function setupLogging()
     {
-        $level = $this->options->getOpt('loglevel', $this->logdefault);
-        if (!isset($this->loglevel[$level])) $this->fatal('Unknown log level');
-        foreach (array_keys($this->loglevel) as $l) {
-            if ($l == $level) break;
-            unset($this->loglevel[$l]);
-        }
+		$this->setLogLevel( $this->options->getOpt('loglevel', $this->logdefault) );
     }
 
-    /**
+	/**
+	 * Set current log level
+	 *
+	 * @param string $level
+	 *
+	 * @return void
+	 */
+	public function setLogLevel( $level )
+	{
+		if (!isset(self::$loglevels[$level])) {
+			$this->fatal('Unknown log level "{level}".', compact( 'level' ));
+		}
+
+		$this->loglevel = self::$loglevels;
+
+		foreach (array_keys($this->loglevel) as $l) {
+			if ($l === $level) break;
+			unset($this->loglevel[$l]);
+		}
+	}
+
+	/**
      * Wrapper around the option parsing
      */
     protected function parseOptions()
