@@ -52,6 +52,7 @@ abstract class Base
             set_exception_handler(array($this, 'fatal'));
         }
 
+        $this->loglevel = self::$loglevels;
         $this->colors = new Colors();
         $this->options = new Options($this->colors);
     }
